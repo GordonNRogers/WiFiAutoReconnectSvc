@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/bin
+/obj
+/WiFiAutoReconnectLib/bin
+/WiFiAutoReconnectLib/obj
+/WiFiAutoReconnect_Test/bin
+/WiFiAutoReconnect_Test/obj
+/.vs
