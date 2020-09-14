@@ -53,17 +53,18 @@ namespace WiFiAutoReconnectSvc
             try
             {
                 _logFile?.LogWithTimestamp("+ProjectInstaller.Install()", LogFile.LogLevel.DIAGNOSTIC);
-                base.Install(stateSaver);
+                Utils.UninstallEventLog();
                 Utils.InstallEventLog();
+                base.Install(stateSaver);
             }
             catch (Exception exc)
             {
                 _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
-                Utils.CheckPermissionsAndLog(_logFile);
                 throw exc;
             }
             finally
             {
+                Utils.CheckPermissionsAndLog(_logFile);
                 _logFile?.LogWithTimestamp("-ProjectInstaller.Install()", LogFile.LogLevel.DIAGNOSTIC);
             }
         }
@@ -80,10 +81,13 @@ namespace WiFiAutoReconnectSvc
             catch (Exception exc)
             {
                 _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
-                Utils.CheckPermissionsAndLog(_logFile);
                 throw exc;
             }
-            _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", LogFile.LogLevel.DIAGNOSTIC);
+            finally
+            {
+                Utils.CheckPermissionsAndLog(_logFile);
+                _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", LogFile.LogLevel.DIAGNOSTIC);
+            }
         }
 
     }

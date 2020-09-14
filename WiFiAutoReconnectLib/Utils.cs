@@ -31,34 +31,62 @@ namespace WiFiAutoReconnectLib
 
         public static void InstallEventLog()
         {
-            if (!EventLog.SourceExists(Constants.EventSource))
+            try
             {
-                // https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.eventlog.createeventsource?view=netframework-4.7.2#System_Diagnostics_EventLog_CreateEventSource_System_String_System_String_
-                EventSourceCreationData ecsd = new EventSourceCreationData(Constants.EventSource, Constants.EventLogName)
+                if (!EventLog.SourceExists(Constants.EventSource))
                 {
-                    MachineName = Constants.MachineName
-                };
-                EventLog.CreateEventSource(ecsd);
-                LogEvent("Event log created.");
+                    // https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.eventlog.createeventsource?view=netframework-4.7.2#System_Diagnostics_EventLog_CreateEventSource_System_String_System_String_
+                    /*
+                    EventSourceCreationData ecsd = new EventSourceCreationData(Constants.EventSource, Constants.EventLogName)
+                    {
+                        MachineName = Constants.MachineName
+                    };
+                    EventLog.CreateEventSource(ecsd);
+                    */
+
+                    EventLog.CreateEventSource(Constants.EventSource, Constants.EventLogName);
+                }
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
             }
         }
 
         public static void LogEvent(string eventText, EventLogEntryType type=EventLogEntryType.Information)
         {
-            if (EventLog.SourceExists(Constants.EventSource))
+            try
             {
-                using (EventLog eventLog1 = new EventLog(Constants.EventLogName, Constants.MachineName, Constants.EventSource))
+                if (EventLog.SourceExists(Constants.EventSource))
                 {
-                    eventLog1.WriteEntry(eventText, type);
+                    using (EventLog eventLog1 = new EventLog(Constants.EventLogName, Constants.MachineName, Constants.EventSource))
+                    {
+                        eventLog1.WriteEntry(eventText, type);
+                    }
                 }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
             }
         }
 
         public static void UninstallEventLog()
         {
-            if (EventLog.SourceExists(Constants.EventSource))
+            try
             {
-                EventLog.DeleteEventSource(Constants.EventSource);
+                if (EventLog.SourceExists(Constants.EventSource))
+                    EventLog.DeleteEventSource(Constants.EventSource);
+
+                if (EventLog.Exists(Constants.EventLogName))
+                    EventLog.Delete(Constants.EventLogName);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
             }
         }
     }
