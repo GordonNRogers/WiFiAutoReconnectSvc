@@ -45,7 +45,7 @@ namespace WiFiAutoReconnectLib
 
         public static void LogEvent(string eventText, EventLogEntryType type=EventLogEntryType.Information)
         {
-            if (!EventLog.SourceExists(Constants.EventSource))
+            if (EventLog.SourceExists(Constants.EventSource))
             {
                 using (EventLog eventLog1 = new EventLog(Constants.EventLogName, Constants.MachineName, Constants.EventSource))
                 {
