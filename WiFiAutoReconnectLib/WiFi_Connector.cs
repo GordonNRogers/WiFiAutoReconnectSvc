@@ -27,17 +27,15 @@ namespace WiFiAutoReconnectLib
         private bool connectWiFiWhenEthernetActive = false;
         private int daysToKeepLogs = 5;
         private LogFile _logFile = null;
-        private LogFile.LogLevel _lvl = LogFile.LogLevel.INFO;
-        private EventLog _eventLog;
+        private LogFile.LogLevel fileLogLevel = LogFile.LogLevel.INFO;
+        private LogFile.LogLevel eventLogLevel = LogFile.LogLevel.INFO;
 
         public LogFile LogFile { get { return _logFile; } }
         public EventHandler OnComplete = onCompleteDefault;
 
-        public WiFi_Connector(LogFile.LogLevel lvl = LogFile.LogLevel.INFO,  EventLog eventLog=null)
+        public WiFi_Connector(EventLog eventLog=null)
         {
             checkInterval = new TimeSpan(0, 0, numSecondsBetweenChecks); // read-only, so must be assigned in the constructor
-            _eventLog = eventLog;
-            _lvl = lvl;
             initialize();
         }
 
@@ -51,19 +49,36 @@ namespace WiFiAutoReconnectLib
             try
             {
                 // load settings from app.config
+                string errors = "";
                 try
                 {
                     baseLogFileName = ConfigurationManager.AppSettings["LogFileName"];
                     daysToKeepLogs = Convert.ToInt32(ConfigurationManager.AppSettings["DaysToKeepLogs"]);
-                    _logFile = new LogFile(baseLogFileName, daysToKeepLogs, _lvl, _eventLog);
+
+                    string sFileLogLevel = ConfigurationManager.AppSettings["FileLogLevel"];
+                    string sEventlogLevel = ConfigurationManager.AppSettings["EventLogLevel"];
+                    if (!Enum.TryParse(sFileLogLevel, true, out fileLogLevel))
+                        errors += "Config file error: invalid FileLogLevel: " + sFileLogLevel;
+                    if(!Enum.TryParse(sEventlogLevel, true, out eventLogLevel))
+                        errors += "Config file error: invalid EventLogLevel: " + sEventlogLevel;
+
+                    // CONSIDER:  file logging, event logging
+                    //  Should these be split up? (seperation of responsibilities)
+                    //  Is this a good place to use dependancy injection?
+                    _logFile = new LogFile(baseLogFileName, daysToKeepLogs, fileLogLevel, eventLogLevel);
                 }
                 catch (Exception exc)
                 {
+                    errors += exc.ToString();
                     baseLogFileName = "WiFi_Connector_Error";
                     daysToKeepLogs = 3;
                     _logFile = new LogFile(baseLogFileName, daysToKeepLogs);
                 }
 
+                if(errors.Length>0)
+                {
+                    _logFile?.LogWithTimestamp(errors, LogFile.LogLevel.ERROR);
+                }
 
                 ssid = ConfigurationManager.AppSettings["SSID"];
                 numSecondsBetweenChecks = Convert.ToInt32(ConfigurationManager.AppSettings["NumSecondsBetweenChecks"]);

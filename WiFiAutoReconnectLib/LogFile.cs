@@ -13,11 +13,13 @@ namespace WiFiAutoReconnectLib
         public enum LogLevel { DIAGNOSTIC, INFO, WARNING, ERROR };  // from most important to least important
 
         private TextWriter logWriter = null;
-        LogLevel maxLogLevel = LogLevel.INFO;
+        LogLevel maxFileLogLevel = LogLevel.INFO;
+        LogLevel maxEventLogLevel = LogLevel.INFO;
 
-        public LogFile(string baseName, int daysToKeep, LogLevel MaxLogLevel = LogLevel.INFO, EventLog eventLog=null)
+        public LogFile(string baseName, int daysToKeep, LogLevel MaxFileLogLevel = LogLevel.INFO, LogLevel MaxEventLogLevel = LogLevel.INFO)
         {
-            maxLogLevel = MaxLogLevel;
+            maxFileLogLevel = MaxFileLogLevel;
+            maxEventLogLevel = MaxEventLogLevel;
 
             try
             {
@@ -76,7 +78,7 @@ namespace WiFiAutoReconnectLib
 #if DEBUG
             Debug.WriteLine(sLogMessage);
 #endif
-            if (lvl >= maxLogLevel)
+            if (lvl >= maxFileLogLevel)
             {
                 if (logWriter != null)
                 {
@@ -92,10 +94,13 @@ namespace WiFiAutoReconnectLib
                 }
             }
 
-            if(lvl >= LogLevel.INFO)
+            if (lvl >= maxEventLogLevel)
             {
-                switch(lvl)
+                switch (lvl)
                 {
+                    case LogLevel.DIAGNOSTIC:
+                        Utils.LogEvent(text, EventLogEntryType.Information);
+                        break;
                     case LogLevel.INFO:
                         Utils.LogEvent(text, EventLogEntryType.Information);
                         break;

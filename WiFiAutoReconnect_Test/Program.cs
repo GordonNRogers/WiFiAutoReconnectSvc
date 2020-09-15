@@ -62,7 +62,7 @@ namespace WiFiAutoReconnect_Test
         {
             // expected behavior:  thread will run multiple times and exit cleanly when Stop() is called.
             // fireCount should be > 0.
-            using (WiFi_Connector connector = new WiFi_Connector(LogFile.LogLevel.DIAGNOSTIC))
+            using (WiFi_Connector connector = new WiFi_Connector())
             {
                 connector.LogFile.LogWithTimestamp("Start Test 3", LogFile.LogLevel.DIAGNOSTIC);
                 AutoResetEvent completedEvent = new AutoResetEvent(false);
@@ -85,7 +85,7 @@ namespace WiFiAutoReconnect_Test
         private static void Test4()
         {
             // a longer duration test to get a better feel of cpu usage
-            using (WiFi_Connector connector = new WiFi_Connector(LogFile.LogLevel.DIAGNOSTIC))
+            using (WiFi_Connector connector = new WiFi_Connector())
             {
                 TimeSpan testLength = new TimeSpan(0, 10, 0);
                 DateTime testEndTime = DateTime.Now + testLength;
