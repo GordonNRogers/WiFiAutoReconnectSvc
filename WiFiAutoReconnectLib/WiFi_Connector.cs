@@ -19,23 +19,20 @@ namespace WiFiAutoReconnectLib
         private string[] wifiAdapterNames = {};
         private string[] ethernetAdapterNames = { };
         private string ssid = "Rogers2";
-        private string baseLogFileName = "WiFiConnect";
         private Thread runThread = null;
         private AutoResetEvent shutdownRequest = new AutoResetEvent(false);
         private readonly TimeSpan checkInterval;
         private int numSecondsBetweenChecks = (60 * 5);
         private bool connectWiFiWhenEthernetActive = false;
-        private int daysToKeepLogs = 5;
-        private LogFile _logFile = null;
-        private LogFile.LogLevel fileLogLevel = LogFile.LogLevel.INFO;
-        private LogFile.LogLevel eventLogLevel = LogFile.LogLevel.INFO;
+        private Logger _logFile = null;
 
-        public LogFile LogFile { get { return _logFile; } }
+        public Logger LogFile { get { return _logFile; } }
         public EventHandler OnComplete = onCompleteDefault;
 
-        public WiFi_Connector(EventLog eventLog=null)
+        public WiFi_Connector(Logger logger)
         {
             checkInterval = new TimeSpan(0, 0, numSecondsBetweenChecks); // read-only, so must be assigned in the constructor
+            _logFile = logger;
             initialize();
         }
 
@@ -49,37 +46,6 @@ namespace WiFiAutoReconnectLib
             try
             {
                 // load settings from app.config
-                string errors = "";
-                try
-                {
-                    baseLogFileName = ConfigurationManager.AppSettings["LogFileName"];
-                    daysToKeepLogs = Convert.ToInt32(ConfigurationManager.AppSettings["DaysToKeepLogs"]);
-
-                    string sFileLogLevel = ConfigurationManager.AppSettings["FileLogLevel"];
-                    string sEventlogLevel = ConfigurationManager.AppSettings["EventLogLevel"];
-                    if (!Enum.TryParse(sFileLogLevel, true, out fileLogLevel))
-                        errors += "Config file error: invalid FileLogLevel: " + sFileLogLevel;
-                    if(!Enum.TryParse(sEventlogLevel, true, out eventLogLevel))
-                        errors += "Config file error: invalid EventLogLevel: " + sEventlogLevel;
-
-                    // CONSIDER:  file logging, event logging
-                    //  Should these be split up? (seperation of responsibilities)
-                    //  Is this a good place to use dependancy injection?
-                    _logFile = new LogFile(baseLogFileName, daysToKeepLogs, fileLogLevel, eventLogLevel);
-                }
-                catch (Exception exc)
-                {
-                    errors += exc.ToString();
-                    baseLogFileName = "WiFi_Connector_Error";
-                    daysToKeepLogs = 3;
-                    _logFile = new LogFile(baseLogFileName, daysToKeepLogs);
-                }
-
-                if(errors.Length>0)
-                {
-                    _logFile?.LogWithTimestamp(errors, LogFile.LogLevel.ERROR);
-                }
-
                 ssid = ConfigurationManager.AppSettings["SSID"];
                 numSecondsBetweenChecks = Convert.ToInt32(ConfigurationManager.AppSettings["NumSecondsBetweenChecks"]);
                 connectWiFiWhenEthernetActive = Convert.ToBoolean(ConfigurationManager.AppSettings["ConnectWiFiWhenEthernetActive"]);
@@ -95,7 +61,7 @@ namespace WiFiAutoReconnectLib
             }
             catch (Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
             }
 
 
@@ -118,7 +84,7 @@ namespace WiFiAutoReconnectLib
             }
             catch(Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
             }
         }
 
@@ -131,7 +97,7 @@ namespace WiFiAutoReconnectLib
             {
                 wc.DoConnect();
             } while (!wc.shutdownRequest.WaitOne(wc.checkInterval));
-            wc._logFile?.LogWithTimestamp("End of threadFunc.", LogFile.LogLevel.DIAGNOSTIC);
+            wc._logFile?.LogWithTimestamp("End of threadFunc.", Logger.LogLevel.DIAGNOSTIC);
         }
 
         public void Stop()
@@ -140,33 +106,33 @@ namespace WiFiAutoReconnectLib
             // signal the thread to stop...if it times out, abort it
             try
             {
-                _logFile?.LogWithTimestamp("Stop() entered.", LogFile.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("Stop() entered.", Logger.LogLevel.DIAGNOSTIC);
 
                 shutdownRequest.Set();
 
-                _logFile?.LogWithTimestamp("Joining thread.", LogFile.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("Joining thread.", Logger.LogLevel.DIAGNOSTIC);
                 if (runThread.Join(timeout))
                 {
-                    _logFile?.LogWithTimestamp("Thread exited.", LogFile.LogLevel.DIAGNOSTIC);
+                    _logFile?.LogWithTimestamp("Thread exited.", Logger.LogLevel.DIAGNOSTIC);
                 }
                 else
                 {
-                    _logFile?.LogWithTimestamp("Aborting thread.", LogFile.LogLevel.WARNING);
+                    _logFile?.LogWithTimestamp("Aborting thread.", Logger.LogLevel.WARNING);
 
                     // _= tells the compiler the result is disposable
                     _ = Task.Run(() =>
                       {
-                          _logFile?.LogWithTimestamp("Abort task started.", LogFile.LogLevel.DIAGNOSTIC);
+                          _logFile?.LogWithTimestamp("Abort task started.", Logger.LogLevel.DIAGNOSTIC);
                           runThread?.Abort();
-                          _logFile?.LogWithTimestamp("Thread aborted.", LogFile.LogLevel.WARNING);
+                          _logFile?.LogWithTimestamp("Thread aborted.", Logger.LogLevel.WARNING);
                       }).ConfigureAwait(false);
 
-                    _logFile?.LogWithTimestamp("Thread abandoned.", LogFile.LogLevel.DIAGNOSTIC);
+                    _logFile?.LogWithTimestamp("Thread abandoned.", Logger.LogLevel.DIAGNOSTIC);
                 }
             }
             catch (Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
             }
         }
 
@@ -178,7 +144,7 @@ namespace WiFiAutoReconnectLib
 
         private void DoConnect()
         {
-            _logFile?.LogWithTimestamp("Enter DoConnect()", LogFile.LogLevel.INFO);
+            _logFile?.LogWithTimestamp("Enter DoConnect()", Logger.LogLevel.INFO);
 
             lock (this)
             {
@@ -199,12 +165,12 @@ namespace WiFiAutoReconnectLib
                                 ni.Description,
                                 ni.Name,
                                 ni.OperationalStatus.ToString()), 
-                                LogFile.LogLevel.INFO);
+                                Logger.LogLevel.INFO);
 
                             if (ni.OperationalStatus == OperationalStatus.Up)
                             {
                                 ethernetConnected = true;
-                                _logFile?.LogWithTimestamp("Eternet adapter connected, not connecting to wifi.", LogFile.LogLevel.INFO);
+                                _logFile?.LogWithTimestamp("Eternet adapter connected, not connecting to wifi.", Logger.LogLevel.INFO);
                                 break;
                             }
                         }
@@ -216,7 +182,7 @@ namespace WiFiAutoReconnectLib
                                 ni.Description,
                                 ni.Name,
                                 ni.OperationalStatus.ToString()),
-                                LogFile.LogLevel.INFO);
+                                Logger.LogLevel.INFO);
 
                             if (ni.OperationalStatus == OperationalStatus.Down)
                             {
@@ -237,7 +203,7 @@ namespace WiFiAutoReconnectLib
                             _logFile?.LogWithTimestamp(string.Format("Enabling controller: {0} ({1})",
                                 ni.Description,
                                 ni.Name),
-                                LogFile.LogLevel.INFO);
+                                Logger.LogLevel.INFO);
 
                             string procParams = string.Format("wlan connect name=\"{0}\" interface=\"{1}\"", ssid, ni.Name);
                             ProcessStartInfo psi = new ProcessStartInfo("netsh.exe", procParams);
@@ -247,33 +213,33 @@ namespace WiFiAutoReconnectLib
                             Process p = Process.Start(psi);
                             p.WaitForExit();
                             string result = p.StandardOutput.ReadToEnd();
-                            _logFile?.LogWithTimestamp(result, LogFile.LogLevel.INFO);
+                            _logFile?.LogWithTimestamp(result, Logger.LogLevel.INFO);
                         }
 
                     }
                 }
                 catch (Exception exc)
                 {
-                    _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                    _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                 }
                 finally
                 {
                     try
                     {
                         // fire the OnComplete event
-                        _logFile?.LogWithTimestamp("Before OnComplete()", LogFile.LogLevel.DIAGNOSTIC);
+                        _logFile?.LogWithTimestamp("Before OnComplete()", Logger.LogLevel.DIAGNOSTIC);
                         OnComplete(this, new EventArgs());
                         GC.Collect();  // force a garbage collection to keep the footprint as small as possible
-                        _logFile?.LogWithTimestamp("After OnComplete()", LogFile.LogLevel.DIAGNOSTIC);
+                        _logFile?.LogWithTimestamp("After OnComplete()", Logger.LogLevel.DIAGNOSTIC);
                     }
                     catch (Exception exc)
                     {
-                        _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                        _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                     }
                 }
             } // lock(this)
 
-            _logFile?.LogWithTimestamp("Exit DoConnect()", LogFile.LogLevel.DIAGNOSTIC);
+            _logFile?.LogWithTimestamp("Exit DoConnect()", Logger.LogLevel.DIAGNOSTIC);
         }
 
     }

@@ -36,7 +36,7 @@ namespace WiFiAutoReconnectSvc
         {
             try
             {
-                connector = new WiFi_Connector();
+                connector = new WiFi_Connector(Logger.CreateLogger());
                 connector.Start();
                 Utils.LogEvent(Constants.ServiceName + " started.");
             }

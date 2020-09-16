@@ -11,11 +11,11 @@ namespace WiFiAutoReconnectLib
 {
     public static class Utils
     {
-        public static void CheckPermissionsAndLog(LogFile _logFile)
+        public static void CheckPermissionsAndLog(Logger _logFile)
         {
             if (!IsElevated)
             {
-                _logFile?.LogWithTimestamp("******   Needs to run as admin.  Aborting.   ******", LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp("******   Needs to run as admin.  Aborting.   ******", Logger.LogLevel.ERROR);
             }
         }
         private static bool IsElevated

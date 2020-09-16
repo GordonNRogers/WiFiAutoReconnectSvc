@@ -5,10 +5,11 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Configuration;
 
 namespace WiFiAutoReconnectLib
 {
-    public class LogFile : IDisposable
+    public class Logger : IDisposable
     {
         public enum LogLevel { DIAGNOSTIC, INFO, WARNING, ERROR };  // from most important to least important
 
@@ -16,13 +17,14 @@ namespace WiFiAutoReconnectLib
         LogLevel maxFileLogLevel = LogLevel.INFO;
         LogLevel maxEventLogLevel = LogLevel.INFO;
 
-        public LogFile(string baseName, int daysToKeep, LogLevel MaxFileLogLevel = LogLevel.INFO, LogLevel MaxEventLogLevel = LogLevel.INFO)
+        private Logger(string baseName, int daysToKeep, LogLevel MaxFileLogLevel = LogLevel.INFO, LogLevel MaxEventLogLevel = LogLevel.INFO)
         {
             maxFileLogLevel = MaxFileLogLevel;
             maxEventLogLevel = MaxEventLogLevel;
 
             try
             {
+                // load settings from app.config
                 string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 DirectoryInfo cdi = new DirectoryInfo(path);
                 // build the date into the file name
@@ -45,7 +47,47 @@ namespace WiFiAutoReconnectLib
                 Console.WriteLine(exc.ToString());
             }
 
+        }
 
+        public static Logger CreateLogger()
+        {
+            string errors = "";
+            string baseLogFileName = "WiFiConnect";
+            int daysToKeepLogs = 3;
+            Logger _logFile = null;
+
+            try
+            {
+
+                baseLogFileName = ConfigurationManager.AppSettings["LogFileName"];
+                daysToKeepLogs = Convert.ToInt32(ConfigurationManager.AppSettings["DaysToKeepLogs"]);
+
+                Logger.LogLevel fileLogLevel = Logger.LogLevel.INFO;
+                Logger.LogLevel eventLogLevel = Logger.LogLevel.INFO;
+                string sFileLogLevel = ConfigurationManager.AppSettings["FileLogLevel"];
+                string sEventlogLevel = ConfigurationManager.AppSettings["EventLogLevel"];
+                if (!Enum.TryParse(sFileLogLevel, true, out fileLogLevel))
+                    errors += "Config file error: invalid FileLogLevel: " + sFileLogLevel;
+                if (!Enum.TryParse(sEventlogLevel, true, out eventLogLevel))
+                    errors += "Config file error: invalid EventLogLevel: " + sEventlogLevel;
+
+                _logFile = new Logger(baseLogFileName, daysToKeepLogs, fileLogLevel, eventLogLevel);
+            }
+            catch (Exception exc)
+            {
+                errors += exc.ToString();
+                _logFile = new Logger(baseLogFileName, daysToKeepLogs);
+            }
+            finally
+            {
+
+                if (errors.Length > 0)
+                {
+                    _logFile?.LogWithTimestamp(errors, Logger.LogLevel.ERROR);
+                }
+            }
+
+            return _logFile;
         }
 
         public void Dispose()

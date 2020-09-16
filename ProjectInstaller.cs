@@ -23,13 +23,13 @@ namespace WiFiAutoReconnectSvc
     public partial class ProjectInstaller : System.Configuration.Install.Installer
     {
         // The event log is installed by the service so no need to do it here, but the uninstall method needs to remove it.
-        private LogFile _logFile;
+        private Logger _logFile;
 
         public ProjectInstaller()
         {
             try
             {
-                _logFile = new LogFile("ProjectInstaller", 1, LogFile.LogLevel.DIAGNOSTIC);
+                _logFile = Logger.CreateLogger();
                 InitializeComponent();
 
                 // set string values from Constants so they're all in one place
@@ -39,7 +39,7 @@ namespace WiFiAutoReconnectSvc
             }
             catch (Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                 throw exc;
             }
         }
@@ -52,27 +52,27 @@ namespace WiFiAutoReconnectSvc
         {
             try
             {
-                _logFile?.LogWithTimestamp("+ProjectInstaller.Install()", LogFile.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("+ProjectInstaller.Install()", Logger.LogLevel.DIAGNOSTIC);
                 Utils.UninstallEventLog();
                 Utils.InstallEventLog();
                 base.Install(stateSaver);
             }
             catch (Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                 throw exc;
             }
             finally
             {
                 Utils.CheckPermissionsAndLog(_logFile);
-                _logFile?.LogWithTimestamp("-ProjectInstaller.Install()", LogFile.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("-ProjectInstaller.Install()", Logger.LogLevel.DIAGNOSTIC);
             }
         }
 
 
         public override void Uninstall(IDictionary savedState)
         {
-            _logFile?.LogWithTimestamp("+ProjectInstaller.Uninstall()", LogFile.LogLevel.DIAGNOSTIC);
+            _logFile?.LogWithTimestamp("+ProjectInstaller.Uninstall()", Logger.LogLevel.DIAGNOSTIC);
             try
             {
                 base.Uninstall(savedState);
@@ -80,13 +80,13 @@ namespace WiFiAutoReconnectSvc
             }
             catch (Exception exc)
             {
-                _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                 throw exc;
             }
             finally
             {
                 Utils.CheckPermissionsAndLog(_logFile);
-                _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", LogFile.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", Logger.LogLevel.DIAGNOSTIC);
             }
         }
 

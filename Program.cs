@@ -27,9 +27,9 @@ namespace WiFiReconnect_Svc
             }
             catch(Exception exc)
             {
-                using (LogFile _logFile = new LogFile("Program", 1, LogFile.LogLevel.DIAGNOSTIC))
+                using (Logger _logFile = Logger.CreateLogger())
                 {
-                    _logFile?.LogWithTimestamp(exc.ToString(), LogFile.LogLevel.ERROR);
+                    _logFile?.LogWithTimestamp(exc.ToString(), Logger.LogLevel.ERROR);
                     throw exc;
                 }
             }

@@ -22,9 +22,9 @@ namespace WiFiAutoReconnect_Test
         private static void Test1()
         {
             // expected behavior:  thread will run once, set completedEvent and then be shut cleanly down by Stop().
-            using (WiFi_Connector connector = new WiFi_Connector())
+            using (WiFi_Connector connector = new WiFi_Connector(Logger.CreateLogger()))
             {
-                connector.LogFile.LogWithTimestamp("Start Test 1", LogFile.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("Start Test 1", Logger.LogLevel.DIAGNOSTIC);
                 AutoResetEvent completedEvent = new AutoResetEvent(false);
                 TimeSpan timeout = new TimeSpan(0, 2, 0);
 
@@ -34,17 +34,17 @@ namespace WiFiAutoReconnect_Test
                 // wait for the completed event
                 completedEvent.WaitOne(timeout);
                 connector.Stop();
-                connector.LogFile.LogWithTimestamp("End Test 1", LogFile.LogLevel.DIAGNOSTIC);
-                connector.LogFile.LogWithTimestamp("", LogFile.LogLevel.INFO);
+                connector.LogFile.LogWithTimestamp("End Test 1", Logger.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("", Logger.LogLevel.INFO);
             }
         }
 
         private static void Test2()
         {
             // expected behavior:  thread will run once, completedEvent will keep it busy so Stop() times out and has to abort the thread.
-            using (WiFi_Connector connector = new WiFi_Connector())
+            using (WiFi_Connector connector = new WiFi_Connector(Logger.CreateLogger()))
             {
-                connector.LogFile.LogWithTimestamp("Start Test 2", LogFile.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("Start Test 2", Logger.LogLevel.DIAGNOSTIC);
 
                 // use the OnComplete event handler to keep the thread busy long enough to exceed the timeout passed to Thread.Join()
                 connector.OnComplete += new EventHandler((o, e) => 
@@ -53,8 +53,8 @@ namespace WiFiAutoReconnect_Test
                 });
                 connector.Start();
                 connector.Stop();
-                connector.LogFile.LogWithTimestamp("End Test 2", LogFile.LogLevel.DIAGNOSTIC);
-                connector.LogFile.LogWithTimestamp("", LogFile.LogLevel.INFO);
+                connector.LogFile.LogWithTimestamp("End Test 2", Logger.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("", Logger.LogLevel.INFO);
             }
         }
 
@@ -62,9 +62,9 @@ namespace WiFiAutoReconnect_Test
         {
             // expected behavior:  thread will run multiple times and exit cleanly when Stop() is called.
             // fireCount should be > 0.
-            using (WiFi_Connector connector = new WiFi_Connector())
+            using (WiFi_Connector connector = new WiFi_Connector(Logger.CreateLogger()))
             {
-                connector.LogFile.LogWithTimestamp("Start Test 3", LogFile.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("Start Test 3", Logger.LogLevel.DIAGNOSTIC);
                 AutoResetEvent completedEvent = new AutoResetEvent(false);
                 int fireCount = 0;
 
@@ -77,19 +77,19 @@ namespace WiFiAutoReconnect_Test
                 }
                 connector.Stop();
                 Console.WriteLine("Fire Count: " + fireCount);
-                connector.LogFile.LogWithTimestamp("End Test 3", LogFile.LogLevel.DIAGNOSTIC);
-                connector.LogFile.LogWithTimestamp("", LogFile.LogLevel.INFO);
+                connector.LogFile.LogWithTimestamp("End Test 3", Logger.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("", Logger.LogLevel.INFO);
             }
         }
 
         private static void Test4()
         {
             // a longer duration test to get a better feel of cpu usage
-            using (WiFi_Connector connector = new WiFi_Connector())
+            using (WiFi_Connector connector = new WiFi_Connector(Logger.CreateLogger()))
             {
                 TimeSpan testLength = new TimeSpan(0, 10, 0);
                 DateTime testEndTime = DateTime.Now + testLength;
-                connector.LogFile.LogWithTimestamp("Start Test 4", LogFile.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("Start Test 4", Logger.LogLevel.DIAGNOSTIC);
                 AutoResetEvent completedEvent = new AutoResetEvent(false);
                 int fireCount = 0;
 
@@ -102,8 +102,8 @@ namespace WiFiAutoReconnect_Test
                 }
                 connector.Stop();
                 Console.WriteLine("Fire Count: " + fireCount);
-                connector.LogFile.LogWithTimestamp("End Test 3", LogFile.LogLevel.DIAGNOSTIC);
-                connector.LogFile.LogWithTimestamp("", LogFile.LogLevel.INFO);
+                connector.LogFile.LogWithTimestamp("End Test 3", Logger.LogLevel.DIAGNOSTIC);
+                connector.LogFile.LogWithTimestamp("", Logger.LogLevel.INFO);
             }
         }
 
