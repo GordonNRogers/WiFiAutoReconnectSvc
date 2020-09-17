@@ -29,7 +29,7 @@ namespace WiFiAutoReconnectSvc
         {
             try
             {
-                _logFile = Logger.CreateLogger();
+                _logFile = Logger.CreateLogger("ProjectInstaller");
                 InitializeComponent();
 
                 // set string values from Constants so they're all in one place
@@ -52,7 +52,7 @@ namespace WiFiAutoReconnectSvc
         {
             try
             {
-                _logFile?.LogWithTimestamp("+ProjectInstaller.Install()", Logger.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("+ProjectInstaller.Install()", Logger.LogLevel.INFO);
                 Utils.UninstallEventLog();
                 Utils.InstallEventLog();
                 base.Install(stateSaver);
@@ -65,14 +65,14 @@ namespace WiFiAutoReconnectSvc
             finally
             {
                 Utils.CheckPermissionsAndLog(_logFile);
-                _logFile?.LogWithTimestamp("-ProjectInstaller.Install()", Logger.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("-ProjectInstaller.Install()", Logger.LogLevel.INFO);
             }
         }
 
 
         public override void Uninstall(IDictionary savedState)
         {
-            _logFile?.LogWithTimestamp("+ProjectInstaller.Uninstall()", Logger.LogLevel.DIAGNOSTIC);
+            _logFile?.LogWithTimestamp("+ProjectInstaller.Uninstall()", Logger.LogLevel.INFO);
             try
             {
                 base.Uninstall(savedState);
@@ -86,7 +86,7 @@ namespace WiFiAutoReconnectSvc
             finally
             {
                 Utils.CheckPermissionsAndLog(_logFile);
-                _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", Logger.LogLevel.DIAGNOSTIC);
+                _logFile?.LogWithTimestamp("-ProjectInstaller.Uninstall()", Logger.LogLevel.INFO);
             }
         }
 

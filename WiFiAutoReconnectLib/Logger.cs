@@ -49,28 +49,28 @@ namespace WiFiAutoReconnectLib
 
         }
 
-        public static Logger CreateLogger()
+        public static Logger CreateLogger(string baseLogFileName = "Logger")
         {
             string errors = "";
-            string baseLogFileName = "WiFiConnect";
             int daysToKeepLogs = 3;
             Logger _logFile = null;
+            Logger.LogLevel fileLogLevel = Logger.LogLevel.INFO;
+            Logger.LogLevel eventLogLevel = Logger.LogLevel.INFO;
 
             try
             {
+                if (ConfigurationManager.AppSettings.Count > 0)
+                {
+                    baseLogFileName = ConfigurationManager.AppSettings["LogFileName"];
+                    daysToKeepLogs = Convert.ToInt32(ConfigurationManager.AppSettings["DaysToKeepLogs"]);
 
-                baseLogFileName = ConfigurationManager.AppSettings["LogFileName"];
-                daysToKeepLogs = Convert.ToInt32(ConfigurationManager.AppSettings["DaysToKeepLogs"]);
-
-                Logger.LogLevel fileLogLevel = Logger.LogLevel.INFO;
-                Logger.LogLevel eventLogLevel = Logger.LogLevel.INFO;
-                string sFileLogLevel = ConfigurationManager.AppSettings["FileLogLevel"];
-                string sEventlogLevel = ConfigurationManager.AppSettings["EventLogLevel"];
-                if (!Enum.TryParse(sFileLogLevel, true, out fileLogLevel))
-                    errors += "Config file error: invalid FileLogLevel: " + sFileLogLevel;
-                if (!Enum.TryParse(sEventlogLevel, true, out eventLogLevel))
-                    errors += "Config file error: invalid EventLogLevel: " + sEventlogLevel;
-
+                    string sFileLogLevel = ConfigurationManager.AppSettings["FileLogLevel"];
+                    string sEventlogLevel = ConfigurationManager.AppSettings["EventLogLevel"];
+                    if (!Enum.TryParse(sFileLogLevel, true, out fileLogLevel))
+                        errors += "Config file error: invalid FileLogLevel: " + sFileLogLevel;
+                    if (!Enum.TryParse(sEventlogLevel, true, out eventLogLevel))
+                        errors += "Config file error: invalid EventLogLevel: " + sEventlogLevel;
+                }
                 _logFile = new Logger(baseLogFileName, daysToKeepLogs, fileLogLevel, eventLogLevel);
             }
             catch (Exception exc)
