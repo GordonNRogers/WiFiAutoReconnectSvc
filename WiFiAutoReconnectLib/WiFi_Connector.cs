@@ -145,7 +145,7 @@ namespace WiFiAutoReconnectLib
         {
             using (Logger _logFile = Logger.CreateLogger())
             {
-                _logFile?.LogWithTimestamp("Enter DoConnect()", Logger.LogLevel.INFO);
+                _logFile?.LogWithTimestamp("Enter DoConnect()", Logger.LogLevel.DIAGNOSTIC);
 
                 lock (this)
                 {
@@ -166,7 +166,7 @@ namespace WiFiAutoReconnectLib
                                     ni.Description,
                                     ni.Name,
                                     ni.OperationalStatus.ToString()), 
-                                    Logger.LogLevel.INFO);
+                                    Logger.LogLevel.DIAGNOSTIC);
 
                                 if (ni.OperationalStatus == OperationalStatus.Up)
                                 {
@@ -183,7 +183,7 @@ namespace WiFiAutoReconnectLib
                                     ni.Description,
                                     ni.Name,
                                     ni.OperationalStatus.ToString()),
-                                    Logger.LogLevel.INFO);
+                                    Logger.LogLevel.DIAGNOSTIC);
 
                                 if (ni.OperationalStatus == OperationalStatus.Down)
                                 {
