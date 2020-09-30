@@ -30,13 +30,14 @@ namespace WiFiAutoReconnectLib
                 // build the date into the file name
                 string dateStamp = DateTime.Now.ToString("MM_dd_yyyy");
                 string logFileName = string.Format("{0}\\{1}_{2}.log", path, baseName, dateStamp);
-                Console.WriteLine("Createing log file: " + logFileName);
+                Console.WriteLine("Creating log file: " + logFileName);
                 logWriter = new StreamWriter(logFileName, true, Encoding.UTF8) as TextWriter;
 
                 // select all files matching the pattern and delete any that are older than max keep days
                 string pattern = string.Format("{0}_*.log", baseName);
                 var today = DateTime.Now.Date;
-                var files = cdi.GetFiles(pattern).Where(f => today.Subtract(f.LastWriteTime.Date).Days > daysToKeep);
+
+                List<FileInfo> files = cdi.GetFiles(pattern).Where(f => today.Subtract(f.LastWriteTime.Date).Days > daysToKeep).ToList();
                 foreach (FileInfo fi in files)
                 {
                     fi.Delete();
